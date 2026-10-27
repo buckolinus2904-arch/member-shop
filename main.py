@@ -1,9 +1,10 @@
 import os
 import secrets
 import string
+import hmac
+
 from flask import Flask, request, render_template_string, jsonify
 import psycopg2
-from psycopg2.extras import RealDictCursor
 
 app = Flask(__name__)
 
@@ -13,8 +14,12 @@ BASE_URL = os.environ.get(
     "BASE_URL", "https://membershop.vercel.app"
 )
 
+
 def get_db():
+    if not DATABASE_URL:
+        raise RuntimeError("DATABASE_URL is not configured")
     return psycopg2.connect(DATABASE_URL)
+
 
 def generate_key():
     alphabet = string.ascii_uppercase + string.digits
@@ -23,6 +28,7 @@ def generate_key():
         for _ in range(4)
     ]
     return "MEMBER-" + "-".join(parts)
+
 
 def init_db():
     with get_db() as conn:
@@ -37,9 +43,10 @@ def init_db():
                 )
             """)
 
+
 HTML = """
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -89,26 +96,33 @@ pre {
 </head>
 <body>
 <div class="card">
-<h1>Redeem-Key Generator</h1>
+<h1>Redeem Key Generator</h1>
+
 <form id="form">
 <label>Admin Token</label>
-<input id="token" type="password" required>
-<label>Anzahl der Keys (1–500)</label>
+<input id="token" type="password"
+       placeholder="Enter your admin token" required>
+
+<label>Number of keys (1–500)</label>
 <input id="amount" type="number" min="1" max="500"
        value="10" required>
-<button type="submit">Keys generieren</button>
+
+<button type="submit">Generate Keys</button>
 </form>
-<h3>Generierte Keys</h3>
-<pre id="result">Hier erscheinen deine Keys.</pre>
-<button id="copy">Keys kopieren</button>
+
+<h3>Generated Keys</h3>
+<pre id="result">Your generated keys will appear here.</pre>
+
+<button id="copy" type="button">Copy Keys</button>
 </div>
+
 <script>
 const form = document.getElementById("form");
 const result = document.getElementById("result");
 
 form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    result.textContent = "Generiere Keys ...";
+    result.textContent = "Generating keys...";
 
     try {
         const response = await fetch("/api/admin/generate-keys", {
@@ -128,47 +142,52 @@ form.addEventListener("submit", async (event) => {
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.error || "Fehler beim Generieren");
+            throw new Error(data.error || "Failed to generate keys");
         }
 
         result.textContent = data.keys.join("\\n");
     } catch (error) {
-        result.textContent = "Fehler: " + error.message;
+        result.textContent = "Error: " + error.message;
     }
 });
 
 document.getElementById("copy").addEventListener("click", async () => {
-    await navigator.clipboard.writeText(result.textContent);
+    try {
+        await navigator.clipboard.writeText(result.textContent);
+    } catch (error) {
+        alert("Unable to copy keys. Please copy them manually.");
+    }
 });
 </script>
 </body>
 </html>
 """
 
+
 @app.get("/admin")
 def admin_page():
     return render_template_string(HTML)
 
+
 @app.post("/api/admin/generate-keys")
 def generate_keys():
     if not ADMIN_TOKEN:
-        return jsonify(error="ADMIN_TOKEN ist nicht konfiguriert"), 500
+        return jsonify(error="ADMIN_TOKEN is not configured"), 500
 
     auth = request.headers.get("Authorization", "")
     supplied_token = auth.removeprefix("Bearer ").strip()
 
-    import hmac
     if not hmac.compare_digest(supplied_token, ADMIN_TOKEN):
-        return jsonify(error="Nicht autorisiert"), 401
+        return jsonify(error="Unauthorized"), 401
 
     data = request.get_json(silent=True) or {}
     amount = data.get("amount")
 
     if isinstance(amount, bool) or not isinstance(amount, int):
-        return jsonify(error="Anzahl muss eine ganze Zahl sein"), 400
+        return jsonify(error="The amount must be a whole number"), 400
 
     if amount < 1 or amount > 500:
-        return jsonify(error="Erlaubt sind 1 bis 500 Keys"), 400
+        return jsonify(error="You can generate between 1 and 500 keys"), 400
 
     try:
         init_db()
@@ -177,27 +196,36 @@ def generate_keys():
         with get_db() as conn:
             with conn.cursor() as cur:
                 attempts = 0
+
                 while len(keys) < amount and attempts < amount * 3:
                     attempts += 1
                     code = generate_key()
+
                     cur.execute("""
                         INSERT INTO redeem_keys (code)
                         VALUES (%s)
                         ON CONFLICT (code) DO NOTHING
                         RETURNING code
                     """, (code,))
+
                     row = cur.fetchone()
+
                     if row:
                         keys.append(row[0])
 
         if len(keys) != amount:
-            return jsonify(error="Nicht alle Keys konnten erstellt werden"), 500
+            return jsonify(
+                error="Could not generate all requested keys"
+            ), 500
 
         return jsonify(keys=keys, count=len(keys))
 
     except Exception:
-        app.logger.exception("Key-Generierung fehlgeschlagen")
-        return jsonify(error="Datenbankfehler beim Erstellen der Keys"), 500
+        app.logger.exception("Key generation failed")
+        return jsonify(
+            error="A database error occurred while generating keys"
+        ), 500
+
 
 if __name__ == "__main__":
     app.run(debug=False)
