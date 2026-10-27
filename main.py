@@ -113,14 +113,17 @@ button,.btn{display:block;width:100%;margin-top:20px;padding:13px;border:0;borde
 details{border-top:1px solid var(--line);padding:16px 0}
 summary{cursor:pointer;font-weight:600}
 details p{color:var(--muted);margin:10px 0 0}
-.bubbles{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
-.bubbles i{position:absolute;bottom:-60px;left:var(--x);width:var(--s);height:var(--s);border-radius:50%;
-background:radial-gradient(circle at 30% 30%,rgba(124,156,255,.35),rgba(124,156,255,.08) 60%,transparent 70%);
-border:1px solid rgba(124,156,255,.25);opacity:0;animation:rise var(--d) linear var(--t) infinite}
-@keyframes rise{0%{transform:translate(0,0) scale(.8);opacity:0}10%{opacity:1}
-50%{transform:translate(var(--w),-55vh) scale(1)}90%{opacity:.8}100%{transform:translate(calc(var(--w) * -1),-115vh) scale(1.1);opacity:0}}
+.sky{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.sky b{position:absolute;left:var(--x);top:var(--y);width:var(--s);height:var(--s);border-radius:50%;background:#dfe7ff;
+opacity:.15;animation:twinkle var(--d) ease-in-out var(--t) infinite}
+@keyframes twinkle{0%,100%{opacity:.12}50%{opacity:.8}}
+.sky u{position:absolute;left:var(--x);top:var(--y);width:var(--l);height:1.5px;border-radius:2px;opacity:0;
+background:linear-gradient(90deg,transparent,rgba(223,231,255,.9));transform-origin:right center;
+animation:shoot var(--d) linear var(--t) infinite}
+@keyframes shoot{0%{opacity:0;transform:rotate(32deg) translateX(0)}2%{opacity:1}
+9%{opacity:0;transform:rotate(32deg) translateX(var(--r))}100%{opacity:0;transform:rotate(32deg) translateX(var(--r))}}
 header,main,section{position:relative;z-index:1}
-@media(prefers-reduced-motion:reduce){.bubbles{display:none}}
+@media(prefers-reduced-motion:reduce){.sky u{display:none}.sky b{animation:none}}
 @media(max-width:820px){.hero{grid-template-columns:1fr;gap:32px;padding-top:24px}.feats{grid-template-columns:1fr;gap:24px}}
 """
 
@@ -134,16 +137,17 @@ FEATS = """<section class="feats">
 </section>"""
 
 
-def _bubbles(n=22):
-    rnd = random.Random(7)  # fixed seed: same layout on every page load
-    out = []
-    for _ in range(n):
-        out.append(f'<i style="--x:{rnd.randint(0, 98)}%;--s:{rnd.randint(8, 34)}px;--d:{rnd.randint(9, 20)}s;'
-                   f'--t:-{rnd.randint(0, 20)}s;--w:{rnd.randint(-30, 30)}px"></i>')
-    return '<div class="bubbles" aria-hidden="true">' + "".join(out) + "</div>"
+def _sky(stars=48, shooters=6):
+    rnd = random.Random(7)  # fixed seed: same sky on every page load
+    out = [f'<b style="--x:{rnd.randint(0, 99)}%;--y:{rnd.randint(0, 99)}%;--s:{rnd.choice((1, 1, 2, 2, 3))}px;'
+           f'--d:{rnd.randint(3, 8)}s;--t:-{rnd.randint(0, 8)}s"></b>' for _ in range(stars)]
+    # small shooting stars, top left -> bottom right, each one only every 8-16 seconds
+    out += [f'<u style="--x:{rnd.randint(0, 65)}%;--y:{rnd.randint(0, 45)}%;--l:{rnd.randint(40, 70)}px;'
+            f'--r:{rnd.randint(260, 420)}px;--d:{rnd.randint(8, 16)}s;--t:-{rnd.randint(0, 16)}s"></u>' for _ in range(shooters)]
+    return '<div class="sky" aria-hidden="true">' + "".join(out) + "</div>"
 
 
-BUBBLES = _bubbles()
+SKY = _sky()
 
 
 def shell(content):
@@ -153,7 +157,7 @@ def shell(content):
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
 <style>{CSS}</style>
-{BUBBLES}
+{SKY}
 <header><a class="logo" href="/">{e(BRAND)}</a><nav><a href="/">Redeem</a><a href="/faq">FAQ</a><a href="{e(SUPPORT_URL)}">Support</a></nav></header>
 {content}</html>""")
 
