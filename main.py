@@ -86,39 +86,46 @@ FAQ = [
 ]
 
 CSS = """
-:root{color-scheme:dark;--ink:#0f1218;--panel:#161a22;--line:#262c38;--text:#e9ecf2;--muted:#8b93a5;--accent:#7c9cff}
+:root{color-scheme:dark;--ink:#0f1218;--panel:#161a22;--line:#262c38;--text:#e9ecf2;--muted:#8b93a5;--accent:#8b7bff;--accent2:#3ec8ff;--glow:rgba(139,123,255,.55)}
 *{box-sizing:border-box}
-body{margin:0;background:var(--ink);color:var(--text);font:16px/1.55 Manrope,system-ui,sans-serif}
+body{margin:0;background:radial-gradient(ellipse 70% 50% at 50% -10%,rgba(139,123,255,.28),transparent 70%),radial-gradient(ellipse 50% 40% at 90% 30%,rgba(62,200,255,.12),transparent 70%),var(--ink);background-attachment:fixed;color:var(--text);font:16px/1.55 Manrope,system-ui,sans-serif}
 header{display:flex;justify-content:space-between;align-items:center;max-width:1040px;margin:0 auto;padding:20px}
-.logo{font-weight:800;font-size:1.15rem;color:var(--text);text-decoration:none}
+.logo{font-weight:800;font-size:1.15rem;color:var(--text);text-decoration:none;text-shadow:0 0 18px var(--glow)}
 nav a{margin-left:22px;color:var(--muted);text-decoration:none}
-nav a:hover{color:var(--text)}
+nav a{transition:color .2s,text-shadow .2s}nav a:hover{color:var(--text);text-shadow:0 0 12px var(--glow)}
 a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .hero{max-width:1040px;margin:0 auto;padding:48px 20px 40px;display:grid;grid-template-columns:1.15fr .85fr;gap:56px;align-items:center}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;margin-bottom:20px;border:1px solid rgba(139,123,255,.4);border-radius:99px;background:rgba(139,123,255,.1);color:#cfc8ff;font-size:.85rem;font-weight:600;box-shadow:0 0 22px -6px var(--glow)}
+.badge i{width:7px;height:7px;border-radius:50%;background:#5dffa8;box-shadow:0 0 10px #5dffa8;animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35;transform:scale(.7)}}
+.hero h1 span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px var(--glow))}
 .hero h1{font-size:clamp(2.2rem,5.2vw,3.7rem);line-height:1.05;letter-spacing:-.02em;font-weight:800;margin:0 0 18px}
 .lead{font-size:1.1rem;color:var(--muted);max-width:34em;margin:0}
 .feats{max-width:1040px;margin:0 auto;padding:36px 20px 72px;display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
-.feats div{border-top:2px solid var(--line);padding-top:16px}
+.feats div{background:rgba(22,26,34,.6);border:1px solid var(--line);border-radius:14px;padding:20px;transition:border-color .25s,box-shadow .25s,transform .25s}
+.feats div:hover{border-color:rgba(139,123,255,.55);box-shadow:0 0 34px -8px var(--glow);transform:translateY(-3px)}
 .feats b{display:block;margin-bottom:4px}
 .feats span{color:var(--muted)}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px}
+.card{background:linear-gradient(180deg,rgba(26,30,42,.92),rgba(18,21,30,.92));border:1px solid rgba(139,123,255,.28);border-radius:16px;padding:26px;box-shadow:0 0 60px -18px var(--glow),inset 0 1px 0 rgba(255,255,255,.05);backdrop-filter:blur(6px)}
 .card h1,.card h2{font-size:1.3rem;margin:0 0 6px}
 .narrow{max-width:460px;margin:0 auto;padding:28px 20px 64px}
 .narrow h1{font-size:1.8rem}
 label{display:block;margin:16px 0 6px;font-size:.9rem;color:var(--muted)}
-input{width:100%;padding:12px;border-radius:8px;border:1px solid var(--line);background:var(--ink);color:inherit;font:inherit}
-button,.btn{display:block;width:100%;margin-top:20px;padding:13px;border:0;border-radius:8px;background:var(--accent);color:var(--ink);font:inherit;font-weight:800;text-align:center;text-decoration:none;cursor:pointer}
+input{width:100%;padding:12px;border-radius:8px;border:1px solid var(--line);background:rgba(10,12,18,.7);color:inherit;font:inherit;transition:border-color .2s,box-shadow .2s}
+input:focus{outline:0;border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,123,255,.25),0 0 22px -4px var(--glow)}
+button,.btn{display:block;width:100%;margin-top:20px;padding:13px;border:0;border-radius:8px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#0b0d14;font:inherit;font-weight:800;text-align:center;text-decoration:none;cursor:pointer;box-shadow:0 0 26px -4px var(--glow);transition:transform .2s,box-shadow .2s,filter .2s}
+button:hover,.btn:hover{transform:translateY(-2px);box-shadow:0 0 38px 0 var(--glow);filter:brightness(1.08)}
 .msg{padding:10px 12px;border-radius:8px;background:#3a2326;color:#ffb4b4}
 .hint{color:var(--muted);font-size:.9rem;margin-bottom:0}
 details{border-top:1px solid var(--line);padding:16px 0}
 summary{cursor:pointer;font-weight:600}
 details p{color:var(--muted);margin:10px 0 0}
 .sky{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
-.sky b{position:absolute;left:var(--x);top:var(--y);width:var(--s);height:var(--s);border-radius:50%;background:#dfe7ff;
+.sky b{position:absolute;left:var(--x);top:var(--y);width:var(--s);height:var(--s);border-radius:50%;background:#dfe7ff;box-shadow:0 0 6px 1px rgba(170,160,255,.7);
 opacity:.15;animation:twinkle var(--d) ease-in-out var(--t) infinite}
 @keyframes twinkle{0%,100%{opacity:.12}50%{opacity:.8}}
 .sky u{position:absolute;left:var(--x);top:var(--y);width:var(--l);height:1.5px;border-radius:2px;opacity:0;
-background:linear-gradient(90deg,transparent,rgba(223,231,255,.9));transform-origin:right center;
+background:linear-gradient(90deg,transparent,rgba(223,231,255,.95));box-shadow:0 0 8px 1px rgba(139,123,255,.8);transform-origin:right center;
 animation:shoot var(--d) linear var(--t) infinite}
 @keyframes shoot{0%{opacity:0;transform:rotate(32deg) translateX(0)}2%{opacity:1}
 9%{opacity:0;transform:rotate(32deg) translateX(var(--r))}100%{opacity:0;transform:rotate(32deg) translateX(var(--r))}}
@@ -127,7 +134,8 @@ header,main,section{position:relative;z-index:1}
 @media(max-width:820px){.hero{grid-template-columns:1fr;gap:32px;padding-top:24px}.feats{grid-template-columns:1fr;gap:24px}}
 """
 
-HERO = """<h1>Members for your Discord server.</h1>
+HERO = """<span class="badge"><i></i>Redeem in 3 steps</span>
+<h1>Members for your <span>Discord server.</span></h1>
 <p class="lead">Enter the code from your order, add the bot, start the delivery. Three steps, no account.</p>"""
 
 FEATS = """<section class="feats">
